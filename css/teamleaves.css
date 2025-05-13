@@ -1,0 +1,62 @@
+.main {
+  padding: 2rem;
+  background: #f9f9f9;
+  min-height: 100vh;
+}
+
+.team-leave-section {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  max-width: 800px;
+  margin: auto;
+}
+
+.team-leave-section h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.team-leave-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.team-leave-list li {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  background: #fafafa;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.team-leave-list li:hover {
+  background-color: #f0f8ff;
+}
+
+.team-leave-list .name {
+  font-weight: 600;
+}
+
+.team-leave-list .type {
+  background-color: #b0c738;
+  color: #fff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.no-leaves {
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  margin-top: 2rem;
+}

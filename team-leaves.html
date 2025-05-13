@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Leaves</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/teamleaves.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <div id="sidebar-container"></div>
+
+  <!-- Main Section -->
+  <main class="main">
+    <section class="team-leave-section">
+      <h2>👥 Team on Leave Today</h2>
+      <div class="team-leave-container">
+        <ul class="team-leave-list" id="teamLeaveList">
+          <!-- JS will populate leave entries here -->
+        </ul>
+        <p id="noLeavesMessage" class="no-leaves">🎉 Everyone is present today!</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/script.js"></script>
+  <script src="/js/team-leaves.js"></script>
+</body>
+</html>

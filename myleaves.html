@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Leaves</title>
+  <link rel="stylesheet" href="/css/myleaves.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/sidebar.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="topbar">
+        <h1>📄 My Leave Records</h1>
+        <p>Review your leave history and status below.</p>
+      </header>
+
+      <section class="leaves-section">
+        <table id="myLeavesTable" class="styled-table">
+          <thead>
+            <tr>
+              <th>📅 From</th>
+              <th>📅 To</th>
+              <th>📝 Type</th>
+              <th>🔄 Status</th>
+              <th>🧾 Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- JavaScript will populate rows -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+<script>
+    // Load sidebar component
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(html => document.getElementById('sidebar-container').innerHTML = html);
+  </script>
+  <script src="/js/myleaves.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+</html>

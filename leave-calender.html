@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leave Calendar</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/calender.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar Component -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <main class="main">
+      <header class="topbar">
+        <h2>📅 Leave Calendar</h2>
+      </header>
+
+      <!-- Month Selector -->
+      <section class="month-selector">
+        <label for="monthSelect"><strong>Select Month:</strong></label>
+        <input type="month" id="monthSelect" />
+      </section>
+
+      <!-- Calendar Container -->
+      <section id="calendarContainer" class="calendar-grid">
+        <!-- Calendar will be dynamically inserted -->
+      </section>
+
+      <!-- Info Section -->
+      <section class="calendar-info">
+        <div class="info-box">
+          <h3>📌 Features</h3>
+          <ul>
+            <li><strong>Select Month:</strong> View and manage leave days.</li>
+            <li><strong>Mark Leave Days:</strong> Click to mark full-day leave. Right-click for half-day (coming soon).</li>
+            <li><strong>Public Holidays:</strong> Will auto-highlight in green (coming soon).</li>
+            <li><strong>Tooltips:</strong> Hover to view leave type (coming soon).</li>
+          </ul>
+        </div>
+
+        <div class="info-box">
+          <h3>📅 Legend</h3>
+          <ul class="legend-list">
+            <li><span class="legend-box red"></span> Leave Day</li>
+            <li><span class="legend-box blue"></span> Weekend</li>
+            <li><span class="legend-box green"></span> Public Holiday</li>
+            <li><span class="legend-box orange"></span> Half-Day</li>
+          </ul>
+        </div>
+
+        <div class="info-box">
+          <h3>📝 Notes</h3>
+          <ul>
+            <li>This calendar is for personal tracking unless shared with your manager.</li>
+            <li>Always submit official leave through the HR portal.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Load sidebar component
+    fetch('sidebar.html')
+      .then(res => res.text())
+      .then(html => document.getElementById('sidebar-container').innerHTML = html);
+  </script>
+  <script src="/js/calender.js"></script>
+</body>
+</html>
