@@ -1,0 +1,18 @@
+[
+    {
+        "username": "jayashree",
+        "checkIn": "2025-05-30T08:02:20.597Z",
+        "checkOut": "2025-05-30T08:02:32.332Z",
+        "totalBreakSeconds": 2,
+        "totalWorkedSeconds": 8,
+        "savedAt": "2025-05-30T10:02:32+02:00"
+    },
+    {
+        "username": "jayashree",
+        "checkIn": "2025-05-30T08:04:42.846Z",
+        "checkOut": "2025-05-30T08:05:13.515Z",
+        "totalBreakSeconds": 8,
+        "totalWorkedSeconds": 22,
+        "savedAt": "2025-05-30T10:05:13+02:00"
+    }
+]
