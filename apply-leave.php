@@ -1,11 +1,79 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-  header("Location: login.php");
-  exit();
+    header("Location: login.php");
+    exit();
 }
+
+require_once 'db.php'; // Make sure this file contains your database connection
+
 $username = $_SESSION['username'];
+$error = '';
+$success = '';
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leaveType'])) {
+    $leaveType = $_POST['leaveType'];
+    $fromDate = $_POST['fromDate'];
+    $toDate = $_POST['toDate'];
+    $reason = $_POST['reason'];
+    
+    try {
+        // Get user ID
+        $stmt = $pdo->prepare("SELECT user_id FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+        
+        if (!$user) {
+            throw new Exception("User not found!");
+        }
+
+        // Get leave type ID
+        $stmt = $pdo->prepare("SELECT type_id FROM leave_types WHERE type_name = ?");
+        $stmt->execute([$leaveType]);
+        $type = $stmt->fetch();
+        
+        if (!$type) {
+            throw new Exception("Leave type not found!");
+        }
+
+        // Insert leave application
+        $stmt = $pdo->prepare("INSERT INTO leave_applications 
+                              (user_id, type_id, start_date, end_date, reason, status) 
+                              VALUES (?, ?, ?, ?, ?, 'pending')");
+        $stmt->execute([
+            $user['user_id'], 
+            $type['type_id'], 
+            $fromDate, 
+            $toDate, 
+            $reason
+        ]);
+        
+        $success = "Leave request submitted successfully!";
+        
+    } catch (PDOException $e) {
+        $error = "Database error: " . $e->getMessage();
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
+}
+
+// Get user's leave applications
+try {
+    $stmt = $pdo->prepare("SELECT la.*, lt.type_name 
+                         FROM leave_applications la
+                         JOIN leave_types lt ON la.type_id = lt.type_id
+                         JOIN users u ON la.user_id = u.user_id
+                         WHERE u.username = ?
+                         ORDER BY la.start_date DESC");
+    $stmt->execute([$username]);
+    $leaves = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $leaves = [];
+    $error = "Error fetching leave applications: " . $e->getMessage();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -14,6 +82,7 @@ $username = $_SESSION['username'];
   <title>Apply Leave</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex">
 
@@ -30,13 +99,26 @@ $username = $_SESSION['username'];
       <a href="logout.php" class="text-red-600 font-semibold hover:text-red-800">Logout</a>
     </header>
 
+    <!-- Display messages -->
+    <?php if ($error): ?>
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+      <p><?php echo htmlspecialchars($error); ?></p>
+    </div>
+    <?php endif; ?>
+    
+    <?php if ($success): ?>
+    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+      <p><?php echo htmlspecialchars($success); ?></p>
+    </div>
+    <?php endif; ?>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Apply Leave Form -->
       <section class="bg-white p-6 rounded-xl shadow-md">
-        <form id="leaveForm" class="space-y-6">
+        <form id="leaveForm" method="POST" class="space-y-6">
           <div>
             <label for="leaveType" class="block mb-2 font-semibold">Leave Type</label>
-            <select id="leaveType" class="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-300" required>
+            <select id="leaveType" name="leaveType" class="w-full p-2 border border-gray-300 rounded-md focus:ring focus:ring-indigo-300" required>
               <option value="">Select Leave Type</option>
               <option value="Sick Leave">Sick Leave</option>
               <option value="Casual Leave">Casual Leave</option>
@@ -48,23 +130,22 @@ $username = $_SESSION['username'];
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label for="fromDate" class="block mb-2 font-semibold">From Date</label>
-              <input type="date" id="fromDate" class="w-full p-2 border border-gray-300 rounded-md" required>
+              <input type="date" id="fromDate" name="fromDate" class="w-full p-2 border border-gray-300 rounded-md" required>
             </div>
             <div>
               <label for="toDate" class="block mb-2 font-semibold">To Date</label>
-              <input type="date" id="toDate" class="w-full p-2 border border-gray-300 rounded-md" required>
+              <input type="date" id="toDate" name="toDate" class="w-full p-2 border border-gray-300 rounded-md" required>
             </div>
           </div>
 
           <div>
             <label for="reason" class="block mb-2 font-semibold">Reason</label>
-            <textarea id="reason" rows="4" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Explain briefly..." required></textarea>
+            <textarea id="reason" name="reason" rows="4" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Explain briefly..." required></textarea>
           </div>
 
           <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md shadow flex items-center gap-2">
             <i class="fas fa-paper-plane"></i> Submit Leave Request
           </button>
-          <p class="text-green-600 text-sm mt-2 hidden" id="successMessage">✅ Leave request submitted successfully!</p>
         </form>
       </section>
 
@@ -83,8 +164,40 @@ $username = $_SESSION['username'];
                 <th class="px-4 py-2 border">Actions</th>
               </tr>
             </thead>
-            <tbody id="leaveTableBody" class="text-gray-800">
-              <!-- JS will populate rows -->
+            <tbody class="text-gray-800">
+              <?php foreach ($leaves as $leave): ?>
+                <?php
+                  $statusClass = [
+                    'pending' => 'text-yellow-500',
+                    'approved' => 'text-green-500',
+                    'rejected' => 'text-red-500'
+                  ][$leave['status']] ?? 'text-gray-500';
+                ?>
+                <tr>
+                  <td class="px-4 py-2 border"><?php echo htmlspecialchars($leave['type_name']); ?></td>
+                  <td class="px-4 py-2 border"><?php echo date('M j, Y', strtotime($leave['start_date'])); ?></td>
+                  <td class="px-4 py-2 border"><?php echo date('M j, Y', strtotime($leave['end_date'])); ?></td>
+                  <td class="px-4 py-2 border"><?php echo htmlspecialchars($leave['reason']); ?></td>
+                  <td class="px-4 py-2 border font-semibold <?php echo $statusClass; ?>">
+                    <?php echo ucfirst($leave['status']); ?>
+                  </td>
+                  <td class="px-4 py-2 border">
+                    <?php if ($leave['status'] === 'pending'): ?>
+                      <button onclick="confirmDelete(<?php echo $leave['application_id']; ?>)" 
+                        class="text-red-500 hover:underline">Delete</button>
+                    <?php else: ?>
+                      <span class="text-gray-400">No action</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if (empty($leaves)): ?>
+                <tr>
+                  <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+                    No leave applications found
+                  </td>
+                </tr>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
@@ -93,58 +206,45 @@ $username = $_SESSION['username'];
   </main>
 
   <script>
-    // Sidebar auto-load if needed (for JS-only sidebar loading)
-    // fetch('sidebar.html').then(res => res.text()).then(html => document.getElementById('sidebar-container').innerHTML = html);
-
-    // Handle Leave Form Submission
-    const leaveForm = document.getElementById('leaveForm');
-    const leaveTableBody = document.getElementById('leaveTableBody');
-    const successMessage = document.getElementById('successMessage');
-
-    const getLeaves = () => {
-      const leaves = JSON.parse(localStorage.getItem('leaves') || '[]');
-      leaveTableBody.innerHTML = '';
-      leaves.forEach((leave, index) => {
-        leaveTableBody.innerHTML += `
-          <tr>
-            <td class="px-4 py-2 border">${leave.type}</td>
-            <td class="px-4 py-2 border">${leave.from}</td>
-            <td class="px-4 py-2 border">${leave.to}</td>
-            <td class="px-4 py-2 border">${leave.reason}</td>
-            <td class="px-4 py-2 border text-yellow-500 font-semibold">Pending</td>
-            <td class="px-4 py-2 border">
-              <button onclick="deleteLeave(${index})" class="text-red-500 hover:underline">Delete</button>
-            </td>
-          </tr>
-        `;
+    // Set minimum dates for date inputs
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fromDate').min = today;
+      document.getElementById('toDate').min = today;
+      
+      // Update toDate min when fromDate changes
+      document.getElementById('fromDate').addEventListener('change', function() {
+        document.getElementById('toDate').min = this.value;
       });
-    };
-
-    const deleteLeave = (index) => {
-      const leaves = JSON.parse(localStorage.getItem('leaves') || '[]');
-      leaves.splice(index, 1);
-      localStorage.setItem('leaves', JSON.stringify(leaves));
-      getLeaves();
-    };
-
-    leaveForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const newLeave = {
-        type: document.getElementById('leaveType').value,
-        from: document.getElementById('fromDate').value,
-        to: document.getElementById('toDate').value,
-        reason: document.getElementById('reason').value,
-      };
-      const leaves = JSON.parse(localStorage.getItem('leaves') || '[]');
-      leaves.push(newLeave);
-      localStorage.setItem('leaves', JSON.stringify(leaves));
-      leaveForm.reset();
-      successMessage.classList.remove('hidden');
-      getLeaves();
-      setTimeout(() => successMessage.classList.add('hidden'), 3000);
     });
 
-    window.onload = getLeaves;
+    function confirmDelete(applicationId) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Submit delete request
+          const form = document.createElement('form');
+          form.method = 'post';
+          form.action = 'delete_leave.php';
+          
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'application_id';
+          input.value = applicationId;
+          
+          form.appendChild(input);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    }
   </script>
 </body>
 </html>
